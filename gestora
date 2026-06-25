@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapa de Objetivos — Gestora de Projetos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f9f9f7; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const OBJECTIVES = [
+  {
+    id: 1,
+    area: "Gestão de projetos e clientes",
+    objetivo: "Retenção ativa da carteira",
+    indicador: "Número de clientes perdidos por motivos de serviço ou entrega no mês",
+    meta: "0 churns involuntários",
+    como: "Registo no final do mês: algum cliente cancelou ou sinalizou vontade de sair por razões de serviço?",
+    escala: [
+      { label: "100%", desc: "0 churns" },
+      { label: "50%", desc: "1 churn com plano de recuperação" },
+      { label: "0%", desc: "1 churn sem resposta ou 2+" },
+    ],
+    peso: 35,
+    cor: "#1a1a1a",
+  },
+  {
+    id: 2,
+    area: "Distribuição de tarefas e prazos",
+    objetivo: "Cumprimento de prazos operacionais",
+    indicador: "% de entregas realizadas dentro do prazo acordado com o cliente no mês",
+    meta: "≥ 90% das entregas no prazo",
+    como: "Apurado via ClickUp: tarefas entregues vs. tarefas com prazo no mês. Atrasos comunicados proativamente ao cliente não contam como falha.",
+    escala: [
+      { label: "100%", desc: "≥ 90% no prazo" },
+      { label: "50%", desc: "75–89% no prazo" },
+      { label: "0%", desc: "< 75% no prazo" },
+    ],
+    peso: 30,
+    cor: "#2d5a1b",
+  },
+  {
+    id: 3,
+    area: "Comunicação com clientes",
+    objetivo: "Alinhamentos mensais realizados",
+    indicador: "% de clientes ativos com reunião/alinhamento mensal realizado",
+    meta: "100% dos clientes ativos com alinhamento feito até ao último dia útil do mês",
+    como: "Checklist mensal validada pela Gestora de Projetos. Inclui envio da folha de alinhamento e registo de leads fechados pelo cliente.",
+    escala: [
+      { label: "100%", desc: "100% dos clientes" },
+      { label: "50%", desc: "80–99% dos clientes" },
+      { label: "0%", desc: "< 80% dos clientes" },
+    ],
+    peso: 20,
+    cor: "#7c3d1a",
+  },
+  {
+    id: 4,
+    area: "Coordenação de equipa",
+    objetivo: "Projetos dentro dos recursos alocados",
+    indicador: "% de projetos entregues sem overrun significativo de horas ou recursos",
+    meta: "≤ 10% de desvio nos recursos alocados, na média dos projetos do mês",
+    como: "Comparação entre horas/recursos estimados e realizados, registados no ClickUp. Exceções justificadas por scope creep do cliente são excluídas.",
+    escala: [
+      { label: "100%", desc: "≤ 10% de desvio médio" },
+      { label: "50%", desc: "10–25% de desvio médio" },
+      { label: "0%", desc: "> 25% de desvio médio" },
+    ],
+    peso: 15,
+    cor: "#1a3a6b",
+  },
+];
+
+const TETO_FIXO = 95;
+
+function fmt(n) {
+  return n.toFixed(2).replace(".", ",");
+}
+
+function App() {
+  const [expanded, setExpanded] = React.useState(null);
+  const [achievements, setAchievements] = React.useState({ 1: 1, 2: 1, 3: 1, 4: 1 });
+  const [teto] = React.useState(TETO_FIXO);
+
+  const bonus = OBJECTIVES.reduce((acc, obj) => {
+    return acc + teto * (obj.peso / 100) * achievements[obj.id];
+  }, 0);
+
+  const pctTotal = Math.round((bonus / teto) * 100);
+  const barColor = pctTotal === 100 ? "#3a5a00" : pctTotal >= 50 ? "#c8a000" : "#cc4444";
+
+  return (
+    <div style={{ fontFamily: "'Inter','Segoe UI',sans-serif", background: "#f9f9f7", minHeight: "100vh", padding: "32px 20px", color: "#1a1a1a" }}>
+      <div style={{ maxWidth: 740, margin: "0 auto" }}>
+
+        {/* Header */}
+        <div style={{ background: "#1a1a1a", borderRadius: "12px 12px 0 0", color: "#fff", padding: "28px 36px" }}>
+          <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", opacity: 0.45, marginBottom: 8 }}>
+            4improvements · Documento Interno
+          </div>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, lineHeight: 1.35 }}>
+            Mapa de Objetivos<br />
+            <span style={{ color: "#c8f135", fontWeight: 400 }}>Gestora de Projetos — Bónus Mensal</span>
+          </h1>
+          <div style={{ marginTop: 14, fontSize: 12, opacity: 0.5, display: "flex", gap: 20 }}>
+            <span>Versão 1.1</span>
+            <span>Junho 2025</span>
+            <span>Revisão: Janeiro 2026</span>
+          </div>
+        </div>
+
+        {/* Mecanismo */}
+        <div style={{ background: "#fff", borderLeft: "1px solid #eee", borderRight: "1px solid #eee", padding: "24px 36px", borderBottom: "1px solid #f0f0ee" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, color: "#bbb", marginBottom: 12 }}>Mecanismo do bónus</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+            {[
+              ["Teto mensal fixo", `€ ${fmt(TETO_FIXO)} — valor acordado entre as partes e revisto semestralmente em Janeiro e Julho.`],
+              ["Apuramento", "Mensal. Cada objetivo é avaliado no último dia útil do mês, com base em dados do ClickUp e checklist da Gestora."],
+              ["Pagamento", "Até ao dia 10 do mês seguinte, com o processamento salarial. Bónus proporcional aos dias trabalhados em meses parciais."],
+            ].map(([title, desc], i) => (
+              <div key={i} style={{ background: "#f9f9f7", borderRadius: 8, padding: "14px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#555", marginBottom: 6 }}>{title}</div>
+                <div style={{ fontSize: 12, color: "#777", lineHeight: 1.6 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Objectives */}
+        <div style={{ background: "#fff", borderLeft: "1px solid #eee", borderRight: "1px solid #eee", padding: "0 36px" }}>
+          <div style={{ paddingTop: 24, paddingBottom: 12, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, color: "#bbb" }}>
+            Objetivos mensais
+          </div>
+          {OBJECTIVES.map((obj) => {
+            const isOpen = expanded === obj.id;
+            return (
+              <div key={obj.id} style={{ borderTop: "1px solid #f0f0ee", paddingTop: 16, paddingBottom: 16 }}>
+                <div onClick={() => setExpanded(isOpen ? null : obj.id)}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 16, cursor: "pointer" }}>
+                  <div style={{ minWidth: 36, height: 36, borderRadius: "50%", background: obj.cor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, marginTop: 2 }}>
+                    {obj.id}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 3 }}>{obj.area}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "#1a1a1a", marginBottom: 4 }}>{obj.objetivo}</div>
+                    <div style={{ fontSize: 13, color: "#666" }}>{obj.meta}</div>
+                  </div>
+                  <div style={{ textAlign: "right", minWidth: 60 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: obj.cor }}>{obj.peso}%</div>
+                    <div style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase", letterSpacing: 0.5 }}>peso</div>
+                  </div>
+                  <div style={{ color: "#ccc", fontSize: 18, marginTop: 6 }}>{isOpen ? "▲" : "▼"}</div>
+                </div>
+                {isOpen && (
+                  <div style={{ marginTop: 16, marginLeft: 52, background: "#f9f9f7", borderRadius: 8, padding: "16px 20px" }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Indicador</div>
+                      <div style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{obj.indicador}</div>
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Como se mede</div>
+                      <div style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{obj.como}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Escala de apuramento</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {obj.escala.map((s, si) => (
+                          <div key={si} style={{ flex: 1, background: si === 0 ? "#e8f5d8" : si === 1 ? "#fff8e0" : "#fdecea", borderRadius: 6, padding: "10px 12px", textAlign: "center" }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: si === 0 ? "#3a5a00" : si === 1 ? "#7a5800" : "#8a1a1a" }}>{s.label}</div>
+                            <div style={{ fontSize: 11, color: "#666", marginTop: 4, lineHeight: 1.4 }}>{s.desc}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Simulator */}
+        <div style={{ background: "#fff", borderRadius: "0 0 12px 12px", border: "1px solid #eee", borderTop: "none", padding: "24px 36px" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5, color: "#bbb", marginBottom: 16 }}>Simulador de bónus mensal</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+            <div style={{ background: "#f9f9f7", borderRadius: 8, padding: "14px 16px" }}>
+              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>Teto mensal fixo</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: "#1a1a1a" }}>€ {fmt(teto)}</div>
+            </div>
+            <div style={{ background: "#f9f9f7", borderRadius: 8, padding: "12px 16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>Bónus do mês</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: "#1a1a1a" }}>€ {fmt(bonus)}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                <div style={{ flex: 1, height: 6, background: "#eee", borderRadius: 99 }}>
+                  <div style={{ width: `${pctTotal}%`, height: "100%", background: barColor, borderRadius: 99, transition: "width 0.3s" }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#999", minWidth: 36 }}>{pctTotal}%</div>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {OBJECTIVES.map(obj => (
+              <div key={obj.id} style={{ display: "grid", gridTemplateColumns: "24px 1fr auto", gap: 12, alignItems: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: obj.cor, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {obj.id}
+                </div>
+                <div style={{ fontSize: 13, color: "#444" }}>
+                  {obj.objetivo}
+                  <span style={{ fontSize: 12, color: "#bbb", marginLeft: 8 }}>
+                    +€ {fmt(teto * (obj.peso / 100) * achievements[obj.id])}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[["0%", 0], ["50%", 0.5], ["100%", 1]].map(([label, val]) => (
+                    <button key={label}
+                      onClick={() => setAchievements(prev => ({ ...prev, [obj.id]: val }))}
+                      style={{ padding: "5px 12px", borderRadius: 6, border: "none", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                        background: achievements[obj.id] === val ? obj.cor : "#f0f0ee",
+                        color: achievements[obj.id] === val ? "#fff" : "#888", transition: "all 0.15s" }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Signatures */}
+        <div style={{ marginTop: 20, background: "#fff", borderRadius: 12, border: "1px solid #eee", padding: "24px 36px" }}>
+          <div style={{ fontSize: 10, color: "#bbb", textTransform: "uppercase", letterSpacing: 1, marginBottom: 20 }}>Acordo e assinatura</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
+            {["Fundador / 4improvements", "Gestora de Projetos"].map((role, i) => (
+              <div key={i}>
+                <div style={{ height: 44, borderBottom: "1.5px solid #ddd", marginBottom: 8 }} />
+                <div style={{ fontSize: 12, color: "#999" }}>{role}</div>
+                <div style={{ fontSize: 11, color: "#ccc", marginTop: 4 }}>Data: ___/___/______</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
